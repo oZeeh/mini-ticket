@@ -56,7 +56,6 @@ func (r *MongoRepository) FindByID(ctx context.Context, id primitive.ObjectID) (
 	defer cancel()
 
 	var user models.User
-
 	err := r.collection.FindOne(
 		ctx,
 		bson.M{"_id": id},

@@ -18,7 +18,6 @@ import (
 // @version 1.0
 // @description Helpdesk API
 // @host localhost:8080
-// @BasePath /api
 func main() {
 
 	err := godotenv.Load()
@@ -33,6 +32,7 @@ func main() {
 	controller := *users.New(service)
 
 	r := gin.Default()
+
 	controller.RegisterRoutes(r)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

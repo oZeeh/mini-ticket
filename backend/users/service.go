@@ -4,6 +4,7 @@ import (
 	"backend/users/interfaces"
 	"backend/users/models"
 	"context"
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,18 +24,21 @@ func (s *UserService) Create(ctx context.Context, request *models.CreateUserRequ
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	println("to aqui")
 	user := request.RequestToEntity()
 
-	println(user)
 	return s.repo.Create(ctx, user)
 }
 
-func (s *UserService) Find(ctx context.Context, id primitive.ObjectID) (*models.User, error) {
+func (s *UserService) Find(ctx context.Context, id string) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	return s.repo.FindByID(ctx, id)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errors.New("invalid id")
+	}
+
+	return s.repo.FindByID(ctx, objectID)
 }
 
 func (s *UserService) Update(ctx context.Context, request *models.CreateUserRequest) (*models.User, error) {
@@ -48,9 +52,14 @@ func (s *UserService) Update(ctx context.Context, request *models.CreateUserRequ
 	return user, err
 }
 
-func (s *UserService) Delete(ctx context.Context, id primitive.ObjectID) error {
+func (s *UserService) Delete(ctx context.Context, id string) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	return s.repo.Delete(ctx, id)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New("invalid id")
+	}
+
+	return s.repo.Delete(ctx, objectID)
 }
