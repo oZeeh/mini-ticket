@@ -2,11 +2,13 @@ definitions:
   enums.Role:
     enum:
     - NONE
+    - ADMIN
     - ASSIGNEE
     - USER
     type: string
     x-enum-varnames:
     - None
+    - Admin
     - Assignee
     - User
   enums.TicketStatus:
@@ -21,16 +23,13 @@ definitions:
     - Done
   models.CreateTicketRequest:
     properties:
-      assigned_to:
-        type: string
       description:
         type: string
-      status:
-        $ref: '#/definitions/enums.TicketStatus'
       title:
         type: string
-      user_id:
-        type: string
+    required:
+    - description
+    - title
     type: object
   models.CreateUserRequest:
     properties:
@@ -168,6 +167,12 @@ paths:
             items:
               $ref: '#/definitions/models.TicketEntity'
             type: array
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -204,12 +209,20 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Cria um novo ticket
       tags:
       - tickets
@@ -236,12 +249,20 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "500":
-          description: Internal Server Error
+        "403":
+          description: Forbidden
           schema:
             additionalProperties:
               type: string
             type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
       summary: Deleta um ticket
       tags:
       - tickets
@@ -265,12 +286,20 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Busca ticket por ID
       tags:
       - tickets
@@ -304,23 +333,71 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Atualiza um ticket
       tags:
       - tickets
-  /tickets/done/{id}:
-    get:
+  /tickets/{id}/assign:
+    post:
       parameters:
-      - description: User ID
+      - description: Ticket ID
         in: path
         name: id
         required: true
         type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Técnico se atribui a um ticket
+      tags:
+      - tickets
+  /tickets/done/:
+    get:
       produces:
       - application/json
       responses:
@@ -336,23 +413,25 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Busca tickets concluídos por usuário
       tags:
       - tickets
-  /tickets/open/{id}:
+  /tickets/open/:
     get:
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -368,23 +447,25 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Busca tickets abertos por usuário
       tags:
       - tickets
-  /tickets/technician/{id}:
+  /tickets/technician/:
     get:
-      parameters:
-      - description: Technician ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -400,23 +481,25 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Busca tickets por técnico assignado
       tags:
       - tickets
-  /tickets/user/{id}:
+  /tickets/user/:
     get:
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -432,12 +515,20 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Busca tickets por usuário
       tags:
       - tickets
@@ -483,11 +574,19 @@ paths:
         name: id
         required: true
         type: string
+      produces:
+      - application/json
       responses:
         "204":
           description: No Content
         "400":
           description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
           schema:
             additionalProperties:
               type: string
@@ -498,6 +597,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Deleta um usuário
       tags:
       - users
@@ -521,12 +622,20 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Busca usuário por ID
       tags:
       - users
@@ -558,6 +667,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
@@ -570,6 +685,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Atualiza um usuário
       tags:
       - users

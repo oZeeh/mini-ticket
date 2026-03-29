@@ -1,6 +1,7 @@
 package tickets
 
 import (
+	customErrors "backend/custom_errors"
 	"backend/tickets/interfaces"
 	"backend/tickets/models"
 	"context"
@@ -50,6 +51,30 @@ func (s *ticketService) Update(ctx context.Context, u *models.UpdateTicketReques
 	return s.repo.Update(ctx, entity)
 }
 
-func (s *ticketService) Delete(ctx context.Context, id primitive.ObjectID) error {
-	return s.repo.Delete(ctx, id)
+func (s *ticketService) Assign(ctx context.Context, ticketID primitive.ObjectID, technicianID primitive.ObjectID) error {
+	ticket, err := s.repo.FindByID(ctx, ticketID)
+	if err != nil {
+		return err
+	}
+	if ticket == nil {
+		return customErrors.ErrNotFound
+	}
+	if ticket.AssignedTo != nil {
+		return customErrors.ErrConflict // já tem técnico assignado
+	}
+	return s.repo.Assign(ctx, ticketID, technicianID)
+}
+
+func (s *ticketService) Delete(ctx context.Context, ticketID primitive.ObjectID, userID primitive.ObjectID) error {
+	ticket, err := s.repo.FindByID(ctx, ticketID)
+	if err != nil {
+		return err
+	}
+	if ticket == nil {
+		return customErrors.ErrNotFound
+	}
+	if ticket.UserID != userID {
+		return customErrors.ErrForbidden
+	}
+	return s.repo.Delete(ctx, ticketID)
 }

@@ -7,11 +7,11 @@ import (
 )
 
 type CreateTicketRequest struct {
-	Title       string              `json:"title"`
-	Description string              `json:"description"`
-	UserID      primitive.ObjectID  `json:"user_id"`
-	AssignedTo  *primitive.ObjectID `json:"assigned_to"`
-	Status      enums.TicketStatus  `json:"status"`
+	Title       string              `json:"title" binding:"required"`
+	Description string              `json:"description" binding:"required"`
+	UserID      primitive.ObjectID  `json:"-"`
+	AssignedTo  *primitive.ObjectID `json:"-"`
+	Status      enums.TicketStatus  `json:"-"`
 }
 
 func (request *CreateTicketRequest) ToEntity() *TicketEntity {
@@ -20,6 +20,6 @@ func (request *CreateTicketRequest) ToEntity() *TicketEntity {
 		Description: request.Description,
 		UserID:      request.UserID,
 		AssignedTo:  nil,
-		Status:      request.Status,
+		Status:      enums.Open,
 	}
 }

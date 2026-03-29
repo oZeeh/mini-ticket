@@ -2,8 +2,10 @@ package tickets
 
 import (
 	customErrors "backend/custom_errors"
+	"backend/middlewares"
 	"backend/tickets/interfaces"
 	"backend/tickets/models"
+	"backend/users/enums"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,28 +20,30 @@ func NewController(service interfaces.Service) *Controller {
 	return &Controller{service: service}
 }
 
-func (ctrl *Controller) RegisterRoutes(r *gin.Engine) {
+func (ctrl *Controller) RegisterRoutes(r *gin.RouterGroup) {
 	tickets := r.Group("/tickets")
-	{
-		tickets.POST("", ctrl.Create)
-		tickets.GET("", ctrl.FindAll)
-		tickets.GET("/:id", ctrl.FindByID)
-		tickets.GET("/user/:id", ctrl.FindByUser)
-		tickets.GET("/technician/:id", ctrl.FindByAssignedTechnician)
-		tickets.GET("/done/:id", ctrl.FindDoneTickets)
-		tickets.GET("/open/:id", ctrl.FindOpenTickets)
-		tickets.PUT("/:id", ctrl.Update)
-		tickets.DELETE("/:id", ctrl.Delete)
-	}
+
+	tickets.POST("", ctrl.Create)
+	tickets.GET("", middlewares.RequireRole(enums.Admin), ctrl.FindAll)
+	tickets.GET("/:id", ctrl.FindByID)
+	tickets.GET("/user", ctrl.FindByUser)
+	tickets.GET("/done", ctrl.FindDoneTickets)
+	tickets.GET("/open", ctrl.FindOpenTickets)
+	tickets.GET("/technician", middlewares.RequireRole(enums.Assignee, enums.Admin), ctrl.FindByAssignedTechnician)
+	tickets.POST("/:id/assign", middlewares.RequireRole(enums.Assignee), ctrl.Assign)
+	tickets.PUT("/:id", middlewares.RequireRole(enums.Assignee), ctrl.Update)
+	tickets.DELETE("/:id", ctrl.Delete)
 }
 
 // @Summary		Cria um novo ticket
 // @Tags			tickets
 // @Accept			json
 // @Produce		json
+// @Security		BearerAuth
 // @Param			ticket	body		models.CreateTicketRequest	true	"Ticket"
 // @Success		201		{object}	map[string]primitive.ObjectID
 // @Failure		400		{object}	map[string]string
+// @Failure		403		{object}	map[string]string
 // @Failure		500		{object}	map[string]string
 // @Router			/tickets [post]
 func (ctrl *Controller) Create(c *gin.Context) {
@@ -49,13 +53,8 @@ func (ctrl *Controller) Create(c *gin.Context) {
 		return
 	}
 
-	userIDVal, exists := c.Get("user_id")
-	if !exists {
-		// TODO: remover quando JWT estiver pronto
-		req.UserID = primitive.NewObjectID()
-	} else {
-		req.UserID = userIDVal.(primitive.ObjectID)
-	}
+	userID := c.MustGet("user_id").(primitive.ObjectID)
+	req.UserID = userID
 
 	id, err := ctrl.service.Create(c.Request.Context(), &req)
 	if err != nil {
@@ -69,9 +68,10 @@ func (ctrl *Controller) Create(c *gin.Context) {
 // @Summary		Lista todos os tickets
 // @Tags			tickets
 // @Produce		json
-// @Success		200	{array}		models.TicketEntity
-// @Failure		500	{object}	map[string]string
 // @Security		BearerAuth
+// @Success		200	{array}		models.TicketEntity
+// @Failure		403	{object}	map[string]string
+// @Failure		500	{object}	map[string]string
 // @Router			/tickets [get]
 func (ctrl *Controller) FindAll(c *gin.Context) {
 	tickets, err := ctrl.service.FindAll(c.Request.Context())
@@ -86,9 +86,11 @@ func (ctrl *Controller) FindAll(c *gin.Context) {
 // @Summary		Busca ticket por ID
 // @Tags			tickets
 // @Produce		json
+// @Security		BearerAuth
 // @Param			id	path		string	true	"Ticket ID"
 // @Success		200	{object}	models.TicketEntity
 // @Failure		400	{object}	map[string]string
+// @Failure		403	{object}	map[string]string
 // @Failure		404	{object}	map[string]string
 // @Router			/tickets/{id} [get]
 func (ctrl *Controller) FindByID(c *gin.Context) {
@@ -110,19 +112,16 @@ func (ctrl *Controller) FindByID(c *gin.Context) {
 // @Summary		Busca tickets por usuário
 // @Tags			tickets
 // @Produce		json
-// @Param			id	path		string	true	"User ID"
+// @Security		BearerAuth
 // @Success		200	{array}		models.TicketEntity
 // @Failure		400	{object}	map[string]string
+// @Failure		403	{object}	map[string]string
 // @Failure		404	{object}	map[string]string
-// @Router			/tickets/user/{id} [get]
+// @Router			/tickets/user/ [get]
 func (ctrl *Controller) FindByUser(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		c.Error(customErrors.ErrBadRequest)
-		return
-	}
+	userID := c.MustGet("user_id").(primitive.ObjectID)
 
-	tickets, err := ctrl.service.FindByUser(c.Request.Context(), id)
+	tickets, err := ctrl.service.FindByUser(c.Request.Context(), userID)
 	if err != nil {
 		c.Error(err)
 		return
@@ -134,19 +133,16 @@ func (ctrl *Controller) FindByUser(c *gin.Context) {
 // @Summary		Busca tickets por técnico assignado
 // @Tags			tickets
 // @Produce		json
-// @Param			id	path		string	true	"Technician ID"
+// @Security		BearerAuth
 // @Success		200	{array}		models.TicketEntity
 // @Failure		400	{object}	map[string]string
+// @Failure		403	{object}	map[string]string
 // @Failure		404	{object}	map[string]string
-// @Router			/tickets/technician/{id} [get]
+// @Router			/tickets/technician/ [get]
 func (ctrl *Controller) FindByAssignedTechnician(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		c.Error(customErrors.ErrBadRequest)
-		return
-	}
+	userID := c.MustGet("user_id").(primitive.ObjectID)
 
-	tickets, err := ctrl.service.FindByAssignedTechnitian(c.Request.Context(), id)
+	tickets, err := ctrl.service.FindByAssignedTechnitian(c.Request.Context(), userID)
 	if err != nil {
 		c.Error(err)
 		return
@@ -158,19 +154,16 @@ func (ctrl *Controller) FindByAssignedTechnician(c *gin.Context) {
 // @Summary		Busca tickets concluídos por usuário
 // @Tags			tickets
 // @Produce		json
-// @Param			id	path		string	true	"User ID"
+// @Security		BearerAuth
 // @Success		200	{array}		models.TicketEntity
 // @Failure		400	{object}	map[string]string
+// @Failure		403	{object}	map[string]string
 // @Failure		404	{object}	map[string]string
-// @Router			/tickets/done/{id} [get]
+// @Router			/tickets/done/ [get]
 func (ctrl *Controller) FindDoneTickets(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		c.Error(customErrors.ErrBadRequest)
-		return
-	}
+	userID := c.MustGet("user_id").(primitive.ObjectID)
 
-	tickets, err := ctrl.service.FindDoneTickets(c.Request.Context(), id)
+	tickets, err := ctrl.service.FindDoneTickets(c.Request.Context(), userID)
 	if err != nil {
 		c.Error(err)
 		return
@@ -182,19 +175,16 @@ func (ctrl *Controller) FindDoneTickets(c *gin.Context) {
 // @Summary		Busca tickets abertos por usuário
 // @Tags			tickets
 // @Produce		json
-// @Param			id	path		string	true	"User ID"
+// @Security		BearerAuth
 // @Success		200	{array}		models.TicketEntity
 // @Failure		400	{object}	map[string]string
+// @Failure		403	{object}	map[string]string
 // @Failure		404	{object}	map[string]string
-// @Router			/tickets/open/{id} [get]
+// @Router			/tickets/open/ [get]
 func (ctrl *Controller) FindOpenTickets(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		c.Error(customErrors.ErrBadRequest)
-		return
-	}
+	userID := c.MustGet("user_id").(primitive.ObjectID)
 
-	tickets, err := ctrl.service.FindOpenTickets(c.Request.Context(), id)
+	tickets, err := ctrl.service.FindOpenTickets(c.Request.Context(), userID)
 	if err != nil {
 		c.Error(err)
 		return
@@ -207,10 +197,12 @@ func (ctrl *Controller) FindOpenTickets(c *gin.Context) {
 // @Tags			tickets
 // @Accept			json
 // @Produce		json
+// @Security		BearerAuth
 // @Param			id		path		string						true	"Ticket ID"
 // @Param			ticket	body		models.UpdateTicketRequest	true	"Ticket"
 // @Success		200		{object}	map[string]string
 // @Failure		400		{object}	map[string]string
+// @Failure		403		{object}	map[string]string
 // @Failure		500		{object}	map[string]string
 // @Router			/tickets/{id} [put]
 func (ctrl *Controller) Update(c *gin.Context) {
@@ -237,22 +229,54 @@ func (ctrl *Controller) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ticket updated"})
 }
 
-// @Summary		Deleta um ticket
+// @Summary		Técnico se atribui a um ticket
 // @Tags			tickets
 // @Produce		json
+// @Security		BearerAuth
 // @Param			id	path		string	true	"Ticket ID"
 // @Success		200	{object}	map[string]string
 // @Failure		400	{object}	map[string]string
-// @Failure		500	{object}	map[string]string
-// @Router			/tickets/{id} [delete]
-func (ctrl *Controller) Delete(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
+// @Failure		403	{object}	map[string]string
+// @Failure		404	{object}	map[string]string
+// @Failure		409	{object}	map[string]string
+// @Router			/tickets/{id}/assign [post]
+func (ctrl *Controller) Assign(c *gin.Context) {
+	ticketID, err := primitive.ObjectIDFromHex(c.Param("id"))
 	if err != nil {
 		c.Error(customErrors.ErrBadRequest)
 		return
 	}
 
-	if err := ctrl.service.Delete(c.Request.Context(), id); err != nil {
+	technicianID := c.MustGet("user_id").(primitive.ObjectID)
+
+	if err := ctrl.service.Assign(c.Request.Context(), ticketID, technicianID); err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ticket assigned"})
+}
+
+// @Summary		Deleta um ticket
+// @Tags			tickets
+// @Produce		json
+// @Security		BearerAuth
+// @Param			id	path		string	true	"Ticket ID"
+// @Success		200	{object}	map[string]string
+// @Failure		400	{object}	map[string]string
+// @Failure		403	{object}	map[string]string
+// @Failure		404	{object}	map[string]string
+// @Router			/tickets/{id} [delete]
+func (ctrl *Controller) Delete(c *gin.Context) {
+	ticketID, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		c.Error(customErrors.ErrBadRequest)
+		return
+	}
+
+	userID := c.MustGet("user_id").(primitive.ObjectID)
+
+	if err := ctrl.service.Delete(c.Request.Context(), ticketID, userID); err != nil {
 		c.Error(err)
 		return
 	}

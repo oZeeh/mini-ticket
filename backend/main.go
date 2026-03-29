@@ -8,13 +8,12 @@ import (
 	"backend/users"
 	"log"
 
+	_ "backend/docs"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
-	_ "backend/docs"
 )
 
 // @title			Mini Ticket API
@@ -26,7 +25,6 @@ import (
 // @name						Authorization
 // @description				Insira o token no formato: Bearer {token}
 func main() {
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("no .env file found")
@@ -36,24 +34,28 @@ func main() {
 
 	userRepository := users.NewRepository(db)
 	userService := users.NewService(userRepository)
-	userController := *users.NewController(userService)
+	userController := users.NewController(userService)
+
+	authService := auth.NewService(userService)
+	authController := auth.NewController(authService)
 
 	ticketsRepository := tickets.NewRepository(db)
 	ticketsService := tickets.NewService(ticketsRepository)
 	ticketsController := tickets.NewController(ticketsService)
 
-	authService := auth.NewService(userService)
-	authController := auth.NewController(authService)
-
 	r := gin.Default()
 	r.Use(middlewares.ErrorHandler())
+
+	// rotas públicas
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	userController.RegisterRoutes(r)
 	authController.RegisterRoutes(r)
+	userController.RegisterPublicRoutes(r)
 
-	r.Use(middlewares.AuthHandler())
-	ticketsController.RegisterRoutes(r)
+	// rotas privadas
+	private := r.Group("/")
+	private.Use(middlewares.AuthHandler())
+	userController.RegisterPrivateRoutes(private)
+	ticketsController.RegisterRoutes(private)
 
 	r.Run(":8080")
 }

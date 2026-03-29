@@ -8,9 +8,9 @@ import (
 
 type TicketEntity struct {
 	ID          primitive.ObjectID  `bson:"_id,omitempty" json:"id"`
-	Title       string              `json:"title"`
-	Description string              `json:"description"`
-	UserID      primitive.ObjectID  `json:"user_id"`
-	AssignedTo  *primitive.ObjectID `json:"assigned_to"`
-	Status      enums.TicketStatus  `json:"status"`
+	Title       string              `bson:"title" json:"title"`
+	Description string              `bson:"description" json:"description"`
+	UserID      primitive.ObjectID  `bson:"user_id" json:"user_id"`
+	AssignedTo  *primitive.ObjectID `bson:"assigned_to,omitempty" json:"assigned_to,omitempty"`
+	Status      enums.TicketStatus  `bson:"status" json:"status"`
 }

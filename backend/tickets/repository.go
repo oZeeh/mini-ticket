@@ -83,7 +83,7 @@ func (r *mongoRepository) FindByUser(ctx context.Context, id primitive.ObjectID)
 }
 
 func (r *mongoRepository) FindDoneTickets(ctx context.Context, id primitive.ObjectID) ([]models.TicketEntity, error) {
-	cursor, err := r.collection.Find(ctx, bson.M{"user_id": id, "status": enums.Done})
+	cursor, err := r.collection.Find(ctx, bson.M{"userid": id, "status": enums.Done})
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (r *mongoRepository) FindDoneTickets(ctx context.Context, id primitive.Obje
 }
 
 func (r *mongoRepository) FindOpenTickets(ctx context.Context, id primitive.ObjectID) ([]models.TicketEntity, error) {
-	cursor, err := r.collection.Find(ctx, bson.M{"user_id": id, "status": enums.Open})
+	cursor, err := r.collection.Find(ctx, bson.M{"userid": id, "status": enums.Open})
 	if err != nil {
 		return nil, err
 	}
@@ -117,5 +117,14 @@ func (r *mongoRepository) Update(ctx context.Context, u *models.TicketEntity) er
 
 func (r *mongoRepository) Delete(ctx context.Context, id primitive.ObjectID) error {
 	_, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
+	return err
+}
+
+func (r *mongoRepository) Assign(ctx context.Context, ticketID primitive.ObjectID, technicianID primitive.ObjectID) error {
+	_, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": ticketID},
+		bson.M{"$set": bson.M{"assigned_to": technicianID}},
+	)
 	return err
 }

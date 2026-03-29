@@ -15,6 +15,7 @@ type Repository interface {
 	FindByUser(ctx context.Context, id primitive.ObjectID) ([]models.TicketEntity, error)
 	FindDoneTickets(ctx context.Context, id primitive.ObjectID) ([]models.TicketEntity, error)
 	FindOpenTickets(ctx context.Context, id primitive.ObjectID) ([]models.TicketEntity, error)
+	Assign(ctx context.Context, ticketID primitive.ObjectID, technicianID primitive.ObjectID) error
 	Update(ctx context.Context, u *models.TicketEntity) error
 	Delete(ctx context.Context, id primitive.ObjectID) error
 }
