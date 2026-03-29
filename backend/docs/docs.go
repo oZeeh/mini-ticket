@@ -448,7 +448,7 @@ const docTemplate = `{
         },
         "/users": {
             "post": {
-                "description": "Creates a new user in the system",
+                "description": "Cria um novo usuário no sistema",
                 "consumes": [
                     "application/json"
                 ],
@@ -458,10 +458,10 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Create a user",
+                "summary": "Cria um novo usuário",
                 "parameters": [
                     {
-                        "description": "User payload",
+                        "description": "Payload do usuário",
                         "name": "user",
                         "in": "body",
                         "required": true,
@@ -476,6 +476,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.CreateUserResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -488,11 +506,11 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Get user by ID",
+                "summary": "Busca usuário por ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
+                        "description": "ID do usuário",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -503,6 +521,24 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -517,17 +553,17 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Update user",
+                "summary": "Atualiza um usuário",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
+                        "description": "ID do usuário",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "User payload",
+                        "description": "Payload do usuário",
                         "name": "user",
                         "in": "body",
                         "required": true,
@@ -542,6 +578,33 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.User"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             },
@@ -549,11 +612,11 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Delete user",
+                "summary": "Deleta um usuário",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
+                        "description": "ID do usuário",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -562,6 +625,24 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }

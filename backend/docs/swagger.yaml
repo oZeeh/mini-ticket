@@ -388,9 +388,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates a new user in the system
+      description: Cria um novo usuário no sistema
       parameters:
-      - description: User payload
+      - description: Payload do usuário
         in: body
         name: user
         required: true
@@ -403,13 +403,25 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/models.CreateUserResponse'
-      summary: Create a user
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Cria um novo usuário
       tags:
       - users
   /users/{id}:
     delete:
       parameters:
-      - description: User ID
+      - description: ID do usuário
         in: path
         name: id
         required: true
@@ -417,12 +429,24 @@ paths:
       responses:
         "204":
           description: No Content
-      summary: Delete user
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Deleta um usuário
       tags:
       - users
     get:
       parameters:
-      - description: User ID
+      - description: ID do usuário
         in: path
         name: id
         required: true
@@ -434,19 +458,31 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.User'
-      summary: Get user by ID
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Busca usuário por ID
       tags:
       - users
     put:
       consumes:
       - application/json
       parameters:
-      - description: User ID
+      - description: ID do usuário
         in: path
         name: id
         required: true
         type: string
-      - description: User payload
+      - description: Payload do usuário
         in: body
         name: user
         required: true
@@ -459,7 +495,25 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.User'
-      summary: Update user
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Atualiza um usuário
       tags:
       - users
 swagger: "2.0"

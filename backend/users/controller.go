@@ -2,6 +2,7 @@
 package users
 
 import (
+	customErrors "backend/custom_errors"
 	"backend/users/interfaces"
 	"backend/users/models"
 	"net/http"
@@ -18,105 +19,112 @@ func NewController(s interfaces.Service) *Controller {
 }
 
 // Create godoc
-// @Summary Create a user
-// @Description Creates a new user in the system
-// @Tags users
-// @Accept json
-// @Produce json
-// @Param user body models.CreateUserRequest true "User payload"
-// @Success 201 {object} models.CreateUserResponse
-// @Router /users [post]
+// @Summary		Cria um novo usuário
+// @Description	Cria um novo usuário no sistema
+// @Tags			users
+// @Accept			json
+// @Produce		json
+// @Param			user	body		models.CreateUserRequest	true	"Payload do usuário"
+// @Success		201		{object}	models.CreateUserResponse
+// @Failure		400		{object}	map[string]string
+// @Failure		500		{object}	map[string]string
+// @Router			/users [post]
 func (c *Controller) Create(ctx *gin.Context) {
 	var req models.CreateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Error(customErrors.ErrBadRequest)
 		return
 	}
 
 	id, err := c.service.Create(ctx.Request.Context(), &req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Error(err)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
-		"id": id.Hex(),
-	})
+	ctx.JSON(http.StatusCreated, gin.H{"id": id.Hex()})
 }
 
-// GetUserByID godoc
-// @Summary Get user by ID
-// @Tags users
-// @Produce json
-// @Param id path string true "User ID"
-// @Success 200 {object} models.User
-// @Router /users/{id} [get]
+// FindByID godoc
+// @Summary		Busca usuário por ID
+// @Tags			users
+// @Produce		json
+// @Param			id	path		string	true	"ID do usuário"
+// @Success		200	{object}	models.User
+// @Failure		400	{object}	map[string]string
+// @Failure		404	{object}	map[string]string
+// @Router			/users/{id} [get]
 func (c *Controller) FindByID(ctx *gin.Context) {
-
 	id := ctx.Param("id")
 
 	user, err := c.service.Find(ctx.Request.Context(), id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Error(err)
 		return
 	}
 
 	if user == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		ctx.Error(customErrors.ErrNotFound)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, user)
 }
 
-// DeleteUser godoc
-// @Summary Delete user
-// @Tags users
-// @Param id path string true "User ID"
-// @Success 204
-// @Router /users/{id} [delete]
+// Delete godoc
+// @Summary		Deleta um usuário
+// @Tags			users
+// @Param			id	path	string	true	"ID do usuário"
+// @Success		204
+// @Failure		400	{object}	map[string]string
+// @Failure		500	{object}	map[string]string
+// @Router			/users/{id} [delete]
 func (c *Controller) Delete(ctx *gin.Context) {
-
 	id := ctx.Param("id")
 
-	err := c.service.Delete(ctx.Request.Context(), id)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := c.service.Delete(ctx.Request.Context(), id); err != nil {
+		ctx.Error(err)
 		return
 	}
 
 	ctx.Status(http.StatusNoContent)
 }
 
-// UpdateUser godoc
-// @Summary Update user
-// @Tags users
-// @Accept json
-// @Produce json
-// @Param id path string true "User ID"
-// @Param user body models.CreateUserRequest true "User payload"
-// @Success 200 {object} models.User
-// @Router /users/{id} [put]
+// Update godoc
+// @Summary		Atualiza um usuário
+// @Tags			users
+// @Accept			json
+// @Produce		json
+// @Param			id		path		string						true	"ID do usuário"
+// @Param			user	body		models.CreateUserRequest	true	"Payload do usuário"
+// @Success		200		{object}	models.User
+// @Failure		400		{object}	map[string]string
+// @Failure		404		{object}	map[string]string
+// @Failure		500		{object}	map[string]string
+// @Router			/users/{id} [put]
 func (c *Controller) Update(ctx *gin.Context) {
-
 	id := ctx.Param("id")
 
 	var req models.CreateUserRequest
-
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Error(customErrors.ErrBadRequest)
 		return
 	}
 
 	user, err := c.service.Find(ctx.Request.Context(), id)
-	if err != nil || user == nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	if user == nil {
+		ctx.Error(customErrors.ErrNotFound)
 		return
 	}
 
 	newUser, err := c.service.Update(ctx.Request.Context(), &req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Error(err)
 		return
 	}
 
@@ -125,7 +133,6 @@ func (c *Controller) Update(ctx *gin.Context) {
 
 func (c *Controller) RegisterRoutes(r *gin.Engine) {
 	group := r.Group("/users")
-
 	group.POST("", c.Create)
 	group.GET("/:id", c.FindByID)
 	group.PUT("/:id", c.Update)
