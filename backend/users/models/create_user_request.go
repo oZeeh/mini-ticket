@@ -9,7 +9,7 @@ type CreateUserRequest struct {
 	Role     enums.Role
 }
 
-func (request *CreateUserRequest) RequestToEntity() *User {
+func (request *CreateUserRequest) ToEntity() *User {
 	return &User{
 		Name:     request.Name,
 		Email:    request.Email,

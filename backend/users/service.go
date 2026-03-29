@@ -24,7 +24,7 @@ func (s *UserService) Create(ctx context.Context, request *models.CreateUserRequ
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	user := request.RequestToEntity()
+	user := request.ToEntity()
 
 	return s.repo.Create(ctx, user)
 }
@@ -45,7 +45,7 @@ func (s *UserService) Update(ctx context.Context, request *models.CreateUserRequ
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	user := request.RequestToEntity()
+	user := request.ToEntity()
 
 	err := s.repo.Update(ctx, user)
 
