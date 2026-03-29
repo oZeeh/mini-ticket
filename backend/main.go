@@ -2,6 +2,8 @@ package main
 
 import (
 	"backend/config"
+	"backend/middlewares"
+	"backend/tickets"
 	"backend/users"
 	"log"
 
@@ -31,9 +33,15 @@ func main() {
 	userService := users.NewService(userRepository)
 	userController := *users.NewController(userService)
 
+	ticketsRepository := tickets.NewRepository(db)
+	ticketsService := tickets.NewService(ticketsRepository)
+	ticketsController := tickets.NewController(ticketsService)
+
 	r := gin.Default()
+	r.Use(middlewares.ErrorHandler())
 
 	userController.RegisterRoutes(r)
+	ticketsController.RegisterRoutes(r)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	r.Run(":8080")
