@@ -13,7 +13,7 @@ type Controller struct {
 	service interfaces.Service
 }
 
-func New(s interfaces.Service) *Controller {
+func NewController(s interfaces.Service) *Controller {
 	return &Controller{service: s}
 }
 

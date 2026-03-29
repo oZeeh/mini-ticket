@@ -27,13 +27,13 @@ func main() {
 
 	db := config.ConnectMongo()
 
-	repo := users.NewMongoRepository(db)
-	service := users.NewService(repo)
-	controller := *users.New(service)
+	userRepository := users.NewRepository(db)
+	userService := users.NewService(userRepository)
+	userController := *users.NewController(userService)
 
 	r := gin.Default()
 
-	controller.RegisterRoutes(r)
+	userController.RegisterRoutes(r)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	r.Run(":8080")
