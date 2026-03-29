@@ -54,6 +54,21 @@ definitions:
       password:
         type: string
     type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
   models.TicketEntity:
     properties:
       assigned_to:
@@ -102,6 +117,46 @@ info:
   title: Mini Ticket API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica o usuário e retorna o token JWT
+      parameters:
+      - description: Credenciais
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login
+      tags:
+      - auth
   /tickets:
     get:
       produces:
@@ -119,6 +174,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Lista todos os tickets
       tags:
       - tickets
@@ -516,4 +573,10 @@ paths:
       summary: Atualiza um usuário
       tags:
       - users
+securityDefinitions:
+  BearerAuth:
+    description: 'Insira o token no formato: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

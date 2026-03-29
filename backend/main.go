@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/auth"
 	"backend/config"
 	"backend/middlewares"
 	"backend/tickets"
@@ -16,10 +17,14 @@ import (
 	_ "backend/docs"
 )
 
-// @title Mini Ticket API
-// @version 1.0
-// @description Helpdesk API
-// @host localhost:8080
+// @title			Mini Ticket API
+// @version		1.0
+// @description	Helpdesk API
+// @host			localhost:8080
+// @securityDefinitions.apikey	BearerAuth
+// @in							header
+// @name						Authorization
+// @description				Insira o token no formato: Bearer {token}
 func main() {
 
 	err := godotenv.Load()
@@ -37,12 +42,18 @@ func main() {
 	ticketsService := tickets.NewService(ticketsRepository)
 	ticketsController := tickets.NewController(ticketsService)
 
+	authService := auth.NewService(userService)
+	authController := auth.NewController(authService)
+
 	r := gin.Default()
 	r.Use(middlewares.ErrorHandler())
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	userController.RegisterRoutes(r)
+	authController.RegisterRoutes(r)
+
+	r.Use(middlewares.AuthHandler())
 	ticketsController.RegisterRoutes(r)
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	r.Run(":8080")
 }

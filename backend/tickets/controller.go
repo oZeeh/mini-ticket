@@ -71,6 +71,7 @@ func (ctrl *Controller) Create(c *gin.Context) {
 // @Produce		json
 // @Success		200	{array}		models.TicketEntity
 // @Failure		500	{object}	map[string]string
+// @Security		BearerAuth
 // @Router			/tickets [get]
 func (ctrl *Controller) FindAll(c *gin.Context) {
 	tickets, err := ctrl.service.FindAll(c.Request.Context())
