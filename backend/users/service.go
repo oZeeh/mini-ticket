@@ -41,6 +41,10 @@ func (s *UserService) Find(ctx context.Context, id string) (*models.User, error)
 	return s.repo.FindByID(ctx, objectID)
 }
 
+func (s *UserService) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+	return s.repo.FindByEmail(ctx, email)
+}
+
 func (s *UserService) Update(ctx context.Context, request *models.CreateUserRequest) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
