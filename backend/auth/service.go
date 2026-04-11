@@ -44,6 +44,6 @@ func (s *authService) Login(ctx context.Context, req *models.LoginRequest) (*mod
 	if err != nil {
 		return nil, err
 	}
-	response := "Bearer " + signed
-	return &models.LoginResponse{Token: response}, nil
+
+	return &models.LoginResponse{Token: signed}, nil
 }

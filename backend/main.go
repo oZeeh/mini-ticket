@@ -10,6 +10,7 @@ import (
 
 	_ "backend/docs"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
@@ -44,6 +45,12 @@ func main() {
 	ticketsController := tickets.NewController(ticketsService)
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowAllOrigins: true,
+		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:    []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:   []string{"Content-Length"},
+	}))
 	r.Use(middlewares.ErrorHandler())
 
 	// rotas públicas
